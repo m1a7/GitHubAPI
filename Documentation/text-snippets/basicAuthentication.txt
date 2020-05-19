@@ -1,0 +1,11 @@
+//-------------------------------------Basic Authentication---------------------------------------------//
+NSMutableURLRequest *request = [NSMutableURLRequest new];
+[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+
+// ⚠️ ⛔️
+#warning Enter here correct password
+
+NSString *authStr   = @"user:password";
+NSData   *authData  = [authStr dataUsingEncoding:NSUTF8StringEncoding];
+NSString *authValue = [NSString stringWithFormat:@"Basic %@",[authData base64EncodedStringWithOptions:0]];
+[request setValue:authValue forHTTPHeaderField:@"Authorization"];

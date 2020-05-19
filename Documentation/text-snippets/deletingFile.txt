@@ -1,0 +1,51 @@
+//------------------------------------- File deletion ---------------------------------------------//
+
+// DELETE /repos/:owner/:repo/contents/:path
+
+// message   string    Required. The commit message.
+// sha       string    Required. The blob SHA of the file being replaced.
+// branch    string    The branch name. Default: the repository’s default branch (usually master)
+
+
+ NSMutableURLRequest *request = [NSMutableURLRequest new];
+ [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+
+
+ NSString *authStr   = @"user:password";
+ NSData   *authData  = [authStr dataUsingEncoding:NSUTF8StringEncoding];
+ NSString *authValue = [NSString stringWithFormat:@"Basic %@",[authData base64EncodedStringWithOptions:0]];
+ [request setValue:authValue forHTTPHeaderField:@"Authorization"];
+
+
+request.URL = [NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/new.txt"];
+
+[[DTO initRequest:request withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+    NSDictionary *infoAboutFile = [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil];
+    NSLog(@"File information: %@",infoAboutFile);
+    
+    // Preparing a deletion request
+    NSString* sha = infoAboutFile[@"sha"];
+
+    NSMutableURLRequest *deleteRequest = [NSMutableURLRequest requestWithURL: request.URL];
+    [deleteRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [deleteRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+    [deleteRequest setHTTPMethod:@"DELETE"];
+    
+    NSDictionary* params = @{@"message" : @"delete txt file",
+                             @"sha"     : sha
+                           };
+    
+    NSError *errorConvertDictionaryToData;
+    NSData *httpBodyData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&errorConvertDictionaryToData];
+    if (errorConvertDictionaryToData){
+        NSLog(@"error convert to base64: %@",errorConvertDictionaryToData);
+    } else {
+        [deleteRequest setHTTPBody:httpBodyData];
+    }
+    
+    [[DTO initRequest:deleteRequest withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+        NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil];
+        NSLog(@"Information after deletion: %@",responseDictionary);
+    }] retainOperationAndStart];
+
+}] retainOperationAndStart];

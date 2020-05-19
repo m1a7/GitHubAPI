@@ -1,0 +1,47 @@
+//------------------------------------- Uploading an image ---------------------------------------------//
+
+// PUT /repos/:owner/:repo/contents/:path
+
+NSURL* url = [NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/plantation2.jpg"];
+NSMutableURLRequest *putRequest = [NSMutableURLRequest requestWithURL:url];
+[putRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+[putRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+[putRequest setHTTPMethod:@"PUT"];
+
+UIImage*  image        = [UIImage imageNamed:@"plantation"];
+NSData*   imageData    = UIImageJPEGRepresentation(image, 1.f);
+NSString* base64String = [imageData base64EncodedStringWithOptions:0];
+
+
+NSDictionary* params = @{@"message" : @"create txt file",
+                         @"content" : base64String
+                        };
+
+NSError *errorConvertToBase64;
+NSData *postData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&errorConvertToBase64];
+[putRequest setHTTPBody:postData];
+
+// Without the progress block
+[[DTO initRequest:putRequest withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+    NSLog(@"received answer to create a picture: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}] retainOperationAndStart];
+
+
+// With progress block
+
+[[DTO initRequest:putRequest withUploadProgress:^(DTO* op, DTOUpProgress p) {
+NSLog(@"Progress Upload: %f", (float)p.totalBytesSent/p.totalBytesExpectedToSend);
+} withDownloadProgress:^(DTO * _Nonnull op, DTODownProgress p) {
+NSLog(@"Progress Download: %f", (float)p.countOfBytesReceived/p.countOfBytesExpectedToReceive);
+} withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+NSLog(@"received answer to create a picture: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}] retainOperationAndStart];
+
+
+
+// Working via UO
+[[UO initRequest:putRequest withProgress:^(UO * _Nonnull op, UOUpProgress p) {
+    NSLog(@"Progress Upload: %f", (float)p.totalBytesSent/p.totalBytesExpectedToSend);
+} withCompletion:^(UO * _Nonnull op, NSError * _Nullable error) {
+    NSLog(@"received answer to create a picture: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}] retainOperationAndStart];

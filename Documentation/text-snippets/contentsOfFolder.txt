@@ -1,0 +1,15 @@
+//------------------------------------- Getting the folder content ---------------------------------------------//
+
+// GET /repos/:owner/:repo/contents/
+
+NSMutableURLRequest *putRequest = [NSMutableURLRequest requestWithURL:@"https://api.github.com/repos/m1a7/HelloWorld/contents"];
+[putRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+[putRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+[request setHTTPMethod:@"GET"];
+
+
+[[DTO initRequest:request withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+    // (!) Note that we get an array and not a dictionary
+    NSArray* responseArray =  [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil];
+    NSLog(@"Information about the folder: %@",responseArray);
+}] retainOperationAndStart];

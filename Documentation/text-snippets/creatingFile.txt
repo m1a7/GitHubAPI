@@ -1,0 +1,37 @@
+//------------------------------------- Creating of file ---------------------------------------------//
+
+// PUT /repos/:owner/:repo/contents/:path
+
+NSMutableURLRequest *putRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/NewFolder/book.txt"]];
+[putRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+[putRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+[putRequest setHTTPMethod:@"PUT"];
+
+
+//---------------------- Creating json file ------------
+//
+// NSDictionary* newContent = @{ @"name" : @"superCompany",
+//                               @"capitalization" : @"1mld"};
+// NSData *contentData = [NSJSONSerialization dataWithJSONObject:newContent options:0 error:nil];
+// NSString *base64Encoded = [contentData base64EncodedStringWithOptions:0];
+
+
+// or
+
+//----------------------  Creating text file ------------
+
+//Create a Base64 Encoded NSString Object
+ NSData *nsdata = [@"HelloWorld!" dataUsingEncoding:NSUTF8StringEncoding];
+ NSString *base64Encoded = [nsdata base64EncodedStringWithOptions:0];
+
+ NSDictionary* params = @{@"message" : @"create txt file",
+                          @"content" : base64Encoded
+                         };
+
+NSError *errorConvertToBase64;
+NSData *postData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&errorConvertToBase64];
+[putRequest setHTTPBody:postData];
+
+[[DTO initRequest:putRequest withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO* op, NSError* error) {
+    NSLog(@"received response to file creation: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}] retainOperationAndStart];

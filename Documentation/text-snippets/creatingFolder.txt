@@ -1,0 +1,30 @@
+//------------------------------------- Create folder ---------------------------------------------//
+
+// Because the git only tracks changes to folders that contain files.
+// So we can't just create a folder, we need to create it and put something in it right away.
+
+// PUT /repos/:owner/:repo/contents/:path
+
+NSURL* url =[NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/NewFolder/info.txt"];
+NSMutableURLRequest *putRequest = [NSMutableURLRequest requestWithURL:url];
+[putRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+[putRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+[putRequest setHTTPMethod:@"PUT"];
+
+
+// Creating a text file
+// Create a Base64 Encoded NSString Object
+NSData *nsdata = [@"Тренеруемся создавать папки" dataUsingEncoding:NSUTF8StringEncoding];
+NSString *base64Encoded = [nsdata base64EncodedStringWithOptions:0];
+
+NSDictionary* params = @{@"message" : @"create new folder with txt file",
+                         @"content" : base64Encoded
+                        };
+
+NSError *errorConvertToBase64;
+NSData *postData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&errorConvertToBase64];
+[putRequest setHTTPBody:postData];
+
+[[DTO initRequest:putRequest withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+    NSLog(@"received response to creating a folder containing the file: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}] retainOperationAndStart];

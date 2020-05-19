@@ -1,0 +1,51 @@
+
+NSMutableURLRequest *request = [NSMutableURLRequest new];
+[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+
+ // ⚠️ ⛔️
+ #warning Enter here correct password
+ 
+ NSString *authStr   = @"user:password";
+ NSData   *authData  = [authStr dataUsingEncoding:NSUTF8StringEncoding];
+ NSString *authValue = [NSString stringWithFormat:@"Basic %@",[authData base64EncodedStringWithOptions:0]];
+ [request setValue:authValue forHTTPHeaderField:@"Authorization"];
+
+
+request.URL = [NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/helloworld.json"];
+
+[[DTO initRequest:request withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO* op, NSError*error) {
+    NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:op.receivedData 
+                                        							   options:kNilOptions 
+                                        								 error:nil];
+    NSLog(@"File information: %@",responseDictionary);
+    
+    // Getting the file itself
+    NSString* downloadURL = responseDictionary[@"download_url"];
+    [[DTO GET:downloadURL withCompletion:^(DTO * _Nonnull op, NSError * _Nullable error) {
+        NSLog(@"received json file: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData 
+																		 options:kNilOptions
+																		   error:nil]);
+    }] retainOperationAndStart];
+    
+}] retainOperationAndStart];
+
+//-----------------------------------------------------//
+
+    // Received json information about helloworld.json
+    "_links" =     {
+            git = "https://api.github.com/repos/m1a7/HelloWorld/git/blobs/a7826f3a75e427fda19e1ade91c30b5d51487149";
+            html = "https://github.com/m1a7/HelloWorld/blob/master/helloworld.json";
+            self = "https://api.github.com/repos/m1a7/HelloWorld/contents/helloworld.json?ref=master";
+        };
+        content = "eyJuYW1lIjoic3VwZXJDb21wYW55IiwiY2FwaXRhbGl6YXRpb24iOiIxbWxk\nIn0=\n";
+        "download_url" = "https://raw.githubusercontent.com/m1a7/HelloWorld/master/helloworld.json?token=ADETHLSL7F6LVDVP2ZJCYWK6XE6DW";
+        encoding = base64;
+        "git_url" = "https://api.github.com/repos/m1a7/HelloWorld/git/blobs/a7826f3a75e427fda19e1ade91c30b5d51487149";
+        "html_url" = "https://github.com/m1a7/HelloWorld/blob/master/helloworld.json";
+        name = "helloworld.json";
+        path = "helloworld.json";
+        sha = a7826f3a75e427fda19e1ade91c30b5d51487149;
+        size = 47;
+        type = file;
+        url = "https://api.github.com/repos/m1a7/HelloWorld/contents/helloworld.json
+    */

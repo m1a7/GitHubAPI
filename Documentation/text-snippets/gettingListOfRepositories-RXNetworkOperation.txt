@@ -1,0 +1,24 @@
+ //---------------------------------- getting a list of repositories -------------------------------------------//   
+    
+NSURLComponents* components = [[NSURLComponents alloc] initWithString:@"https://api.github.com/user/repos"];
+components.queryItems = @[[[NSURLQueryItem alloc] initWithName:@"visibility"  value:@"private"],
+                            [[NSURLQueryItem alloc] initWithName:@"affiliation" value:@"owner"],
+                            [[NSURLQueryItem alloc] initWithName:@"sort"        value:@"updated"],
+                            [[NSURLQueryItem alloc] initWithName:@"direction"   value:@"asc"]];
+request.URL = components.URL;
+
+
+DTO* op =
+[DTO GET:request.URL.absoluteString withCompletion:^(DTO* op, NSError* error) {
+    NSLog(@"List of repositories: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}];
+
+// or
+[request setHTTPMethod:@"GET"];
+
+DTO* op  =
+[DTO initRequest:request withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO* op, NSError* error) {
+    NSLog(@"List of repositories: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData options:kNilOptions error:nil]);
+}];
+
+[op retainOperationAndStart];

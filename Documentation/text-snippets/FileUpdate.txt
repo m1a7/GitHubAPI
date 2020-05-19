@@ -1,0 +1,72 @@
+
+NSMutableURLRequest *request = [NSMutableURLRequest new];
+[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+ 
+ NSString *authStr   = @"user:password";
+ NSData   *authData  = [authStr dataUsingEncoding:NSUTF8StringEncoding];
+ NSString *authValue = [NSString stringWithFormat:@"Basic %@",[authData base64EncodedStringWithOptions:0]];
+ [request setValue:authValue forHTTPHeaderField:@"Authorization"];
+
+//------------------------------------- File update ---------------------------------------------//
+
+// Create or update a file
+
+/*
+message    string    Required. The commit message.
+content    string    Required. The new file content, using Base64 encoding.
+sha        string    Required if you are updating a file. The blob SHA of the file being replaced.
+
+branch     string    The branch name. Default: the repository’s default branch (usually master)
+committer  object    The person that committed the file. Default: the authenticated user.
+author     object    The author of the file. Default: The committer or the authenticated user if you omit committer.
+*/
+
+
+request.URL = [NSURL URLWithString:@"https://api.github.com/repos/m1a7/HelloWorld/contents/helloworld.json"];
+
+[[DTO initRequest:request withUploadProgress:nil withDownloadProgress:nil withCompletion:^(DTO* op, NSError* error) {
+    NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:op.receivedData
+                                        							   options:kNilOptions 
+                                        								 error:nil];
+    NSLog(@"Information about file: %@",responseDictionary);
+
+    NSString* downloadURL = responseDictionary[@"download_url"];
+    NSString* sha = responseDictionary[@"sha"];
+
+    // PUT /repos/:owner/:repo/contents/:path
+
+    NSMutableURLRequest *putRequest = [NSMutableURLRequest requestWithURL: request.URL];
+    [putRequest addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [putRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+    [putRequest setHTTPMethod:@"PUT"];
+
+
+    // prepare new contents of file 'helloworld.json'
+    NSDictionary* newContent = @{ @"name" : @"superCompany",
+                                  @"capitalization" : @"1mld"};
+    NSData *contentData = [NSJSONSerialization dataWithJSONObject:newContent options:0 error:nil];
+    NSString *base64Encoded = [contentData base64EncodedStringWithOptions:0];
+    
+
+    NSDictionary* params = @{@"message" : @"update json file",
+                             @"content" : base64Encoded,
+                             @"sha"     : sha
+                            };
+
+    NSError *errorConvertToBase64;
+    NSData *postData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&errorConvertToBase64];
+    if (error){
+        NSLog(@"error convert to base64: %@",errorConvertToBase64);
+    } else {
+        [putRequest setHTTPBody:postData];
+    }
+
+    [[DTO initRequest:putRequest withUploadProgress:nil withDownloadProgress:nil 
+															  withCompletion:^(DTO* op, NSError *  error) {
+        NSLog(@"received response to the file update: %@", [NSJSONSerialization JSONObjectWithData:op.receivedData 
+																						   options:kNilOptions 
+																							 error:nil]);
+
+    }] retainOperationAndStart];
+
+}] retainOperationAndStart];
